@@ -1,5 +1,6 @@
 import streamlit as st
 from PyPDF2 import PdfMerger
+import io
 
 # Título da aplicação
 st.title("Unificador de PDFs")
@@ -15,17 +16,24 @@ if st.button("Unificar PDFs"):
     if uploaded_files:
         merger = PdfMerger()
         for uploaded_file in uploaded_files:
+            # Adiciona cada PDF ao merger
             merger.append(uploaded_file)
 
-        # Escrever o arquivo PDF mesclado
-        output_path = "completoUnificado.pdf"
-        with open(output_path, "wb") as output_file:
-            merger.write(output_file)
-
+        # Cria um buffer em memória para o PDF mesclado
+        pdf_buffer = io.BytesIO()
+        merger.write(pdf_buffer)
         merger.close()
 
-        # Exibir mensagem de sucesso e link para download
-        st.success(f"PDFs unificados com sucesso!")
-        st.markdown(f"[Baixar arquivo unificado](./{output_path})")
+        # Move o buffer para o início
+        pdf_buffer.seek(0)
+
+        # Gera um link para download
+        st.success("PDFs unificados com sucesso!")
+        st.download_button(
+            label="Baixar arquivo unificado",
+            data=pdf_buffer,
+            file_name="completoUnificado.pdf",
+            mime="application/pdf"
+        )
     else:
         st.error("Por favor, carregue pelo menos um arquivo PDF.")
